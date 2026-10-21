@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+python/layerfs/*.so
 .pytest_cache/
 .ruff_cache/
 dist/

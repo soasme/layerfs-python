@@ -4,17 +4,34 @@ version = "1.0.0"
 edition = "2021"
 rust-version = "1.85"
 license = "MIT"
-description = "Python packaging entry point for the upstream LayerFS daemon"
+description = "In-process Python bindings and commands for the upstream LayerFS engine"
 publish = false
 
 [workspace]
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
 
 [[bin]]
 name = "layerfs-daemon"
 path = "src/main.rs"
 
+[[bin]]
+name = "layerfs"
+path = "src/cli.rs"
+
 [dependencies]
 layerfs-daemon = { path = "../upstream/layerfs/core/crates/layerfs-daemon" }
+layerfs-api = { path = "../upstream/layerfs/core/crates/layerfs-api" }
+layerfs-bridge = { path = "../upstream/layerfs/core/crates/layerfs-bridge" }
+layerfs-history = { path = "../upstream/layerfs/core/crates/layerfs-history" }
+layerfs-persistence = { path = "../upstream/layerfs/core/crates/layerfs-persistence" }
+layerfs-storage = { path = "../upstream/layerfs/core/crates/layerfs-storage" }
+layerfs-store-service = { path = "../upstream/layerfs/core/crates/layerfs-store-service" }
+layerfs-telemetry = { path = "../upstream/layerfs/core/crates/layerfs-telemetry" }
+pyo3 = { version = "=0.27.2", features = ["abi3-py39"] }
+tempfile = "=3.23.0"
 
 # Dependency workspace patches do not apply to the root Cargo workspace.
 [patch.crates-io]

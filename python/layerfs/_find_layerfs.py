@@ -13,12 +13,12 @@ class LayerFSNotFound(FileNotFoundError):
 
 
 def find_layerfs_bin() -> str:
-    """Return the installed ``layerfs-daemon`` executable's absolute path.
+    """Return the installed ``layerfs`` executable's absolute path.
 
     Supports virtual environments, user installs, and pip's ``--prefix`` and
     ``--target`` layouts. Does not select an unrelated executable from PATH.
     """
-    name = "layerfs-daemon" + (sysconfig.get_config_var("EXE") or "")
+    name = "layerfs" + (sysconfig.get_config_var("EXE") or "")
     package = Path(__file__).resolve().parent
     scripts = "Scripts" if sys.platform == "win32" else "bin"
     candidates = [Path(sysconfig.get_path("scripts"))]
@@ -41,11 +41,7 @@ def find_layerfs_bin() -> str:
     candidates.extend(
         [
             Path(sysconfig.get_path("scripts", vars={"base": sys.base_prefix})),
-            Path(
-                sysconfig.get_path(
-                    "scripts", scheme=sysconfig.get_preferred_scheme("user")
-                )
-            ),
+            Path(sysconfig.get_path("scripts", scheme=_user_scheme())),
         ]
     )
     paths = list(dict.fromkeys(directory / name for directory in candidates))
@@ -54,7 +50,17 @@ def find_layerfs_bin() -> str:
             return str(path.resolve())
     locations = "\n".join(f"  {path}" for path in paths)
     raise LayerFSNotFound(
-        "The compiled layerfs-daemon executable is missing. "
+        "The compiled layerfs executable is missing. "
         "Install a built wheel or build the package with Maturin.\n"
         f"Searched:\n{locations}"
     )
+
+
+def _user_scheme() -> str:
+    if sys.version_info >= (3, 10):
+        return sysconfig.get_preferred_scheme("user")
+    if os.name == "nt":
+        return "nt_user"
+    if sys.platform == "darwin" and getattr(sys, "_framework", ""):
+        return "osx_framework_user"
+    return "posix_user"

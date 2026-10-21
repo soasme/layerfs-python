@@ -1,13 +1,14 @@
 [build-system]
-requires = ["maturin>=1.15,<2.0"]
-build-backend = "maturin"
+requires = ["maturin>=1.15,<2.0", "wheel>=0.45,<1"]
+build-backend = "_build_backend"
+backend-path = ["."]
 
 [project]
 name = "layerfs"
 dynamic = ["version"]
-description = "Python distribution of the LayerFS Rust daemon"
+description = "In-process Python bindings and daemon for LayerFS"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 license = "MIT"
 license-files = ["LICENSE", "upstream/layerfs/LICENSE"]
 classifiers = [
@@ -24,13 +25,17 @@ Upstream = "https://github.com/Ephemeral-AI-Lab/layerfs"
 Documentation = "https://layerfs.ai/docs/"
 
 [tool.maturin]
-bindings = "bin"
+bindings = "pyo3"
 manifest-path = "rust/Cargo.toml"
-module-name = "layerfs"
+module-name = "layerfs._native"
+targets = [
+    { name = "_native", kind = "cdylib" },
+]
 python-source = "python"
 strip = true
 locked = true
 include = [
+    { path = "_build_backend.py", format = "sdist" },
     { path = ".cargo/config.toml", format = "sdist" },
     # Maturin does not collect this target-specific Cargo patch on macOS.
     { path = "upstream/layerfs/core/vendor/fuser-0.18.0/**/*", format = "sdist" },
@@ -42,8 +47,19 @@ include = [
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py39"
 extend-exclude = ["upstream"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
+
+[tool.uv]
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "_build_backend.py" },
+    { file = "rust/Cargo.toml" },
+    { file = "rust/Cargo.lock" },
+    { file = "rust/src/**/*.rs" },
+    { file = ".cargo/config.toml" },
+    { git = { commit = true } },
+]
