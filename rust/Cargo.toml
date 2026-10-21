@@ -1,0 +1,21 @@
+[package]
+name = "layerfs-python"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.85"
+license = "MIT"
+description = "Python packaging entry point for the upstream LayerFS daemon"
+publish = false
+
+[workspace]
+
+[[bin]]
+name = "layerfs-daemon"
+path = "src/main.rs"
+
+[dependencies]
+layerfs-daemon = { path = "../upstream/layerfs/core/crates/layerfs-daemon" }
+
+# Dependency workspace patches do not apply to the root Cargo workspace.
+[patch.crates-io]
+fuser = { version = "=0.18.0", path = "../upstream/layerfs/core/vendor/fuser-0.18.0" }

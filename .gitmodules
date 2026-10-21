@@ -1,0 +1,3 @@
+[submodule "upstream/layerfs"]
+	path = upstream/layerfs
+	url = https://github.com/Ephemeral-AI-Lab/layerfs.git
