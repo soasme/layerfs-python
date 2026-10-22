@@ -146,7 +146,8 @@ def verify_release(root: Path) -> None:
         "twine",
         "check",
         "--strict",
-        *(str(path) for path in sorted((root / "dist").iterdir())),
+        *(str(path) for path in sorted((root / "dist").glob("*.whl"))),
+        *(str(path) for path in sorted((root / "dist").glob("*.tar.gz"))),
         cwd=root,
     )
 
@@ -183,18 +184,37 @@ def main() -> None:
     # Like rio, release the remote branch without changing the caller's checkout.
     with tempfile.TemporaryDirectory(prefix="layerfs-bumpversion-") as temporary:
         clone = Path(temporary) / "layerfs-python"
+        print(
+            f"Cloning origin/{args.branch} and pinned upstream sources...", flush=True
+        )
         run_checked(
             "git",
             "clone",
             "--quiet",
-            "--recurse-submodules",
-            "--shallow-submodules",
             "--branch",
             args.branch,
             "--",
             origin,
             str(clone),
             cwd=root,
+        )
+        cached = root / "upstream/layerfs"
+        reference = (
+            ["--reference", str(cached), "--dissociate"]
+            if (cached / ".git").exists()
+            else []
+        )
+        # Borrow only Git objects, never working files; the checkout still uses
+        # the remote branch's pinned commit and becomes independent afterward.
+        run_checked(
+            "git",
+            "submodule",
+            "update",
+            "--init",
+            "--recursive",
+            "--depth=1",
+            *reference,
+            cwd=clone,
         )
         run(
             "git",

@@ -38,6 +38,8 @@ Use `minor` or `major` instead of `patch` to reset lower version components.
 Use `--branch NAME` to release a different remote branch (default `main`).
 
 The helper clones the remote branch and its submodule into a temporary directory,
+reusing local upstream Git objects when available to avoid another full download.
+It checks out the pinned commit, never your local working files. It then
 collects commits since the last `chore(release):` commit for the changelog, updates
 the package and lockfile versions, checks formatting, builds the sdist and wheel,
 tests the installed wheel with Python 3.9, and checks distribution metadata.

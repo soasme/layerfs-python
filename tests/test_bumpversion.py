@@ -148,3 +148,25 @@ def test_atomic_push_does_not_publish_tag_after_branch_moves(
         bumpversion.commit_release(repository, version, "main")
     assert git(remote, "rev-parse", "main") == advanced
     assert git(remote, "tag", "--list") == ""
+
+
+def test_distribution_check_ignores_uv_metadata(
+    repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    dist = repository / "dist"
+    dist.mkdir()
+    for name in (".gitignore", "layerfs-1.2.4.whl", "layerfs-1.2.4.tar.gz"):
+        (dist / name).touch()
+    commands = []
+
+    def checked(*args: str, cwd: Path) -> None:
+        commands.append(args)
+
+    monkeypatch.setattr(bumpversion, "run_checked", checked)
+    bumpversion.verify_release(repository)
+    twine = commands[-1]
+    assert twine[:6] == ("uv", "tool", "run", "twine", "check", "--strict")
+    assert set(twine[6:]) == {
+        str(dist / "layerfs-1.2.4.whl"),
+        str(dist / "layerfs-1.2.4.tar.gz"),
+    }
