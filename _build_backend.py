@@ -29,6 +29,9 @@ def _bundle(wheel_directory: str, filename: str) -> str:
     # manylinux images contain several Pythons; use this build's interpreter
     # for the bin compilation too, as Maturin does for the extension.
     env.setdefault("PYO3_PYTHON", sys.executable)
+    # The commands do not embed Python. As in Maturin's extension build, avoid
+    # linking libpython (manylinux deliberately omits its static library).
+    env["PYO3_BUILD_EXTENSION_MODULE"] = "1"
     if platform.system() == "Darwin":
         env.setdefault(
             "MACOSX_DEPLOYMENT_TARGET",
