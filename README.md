@@ -5,6 +5,13 @@ inside a Python application, or run its bundled daemon for FUSE deployments.
 Python 3.9+ is supported. Store operations require **Linux on ext4, XFS, or Btrfs**;
 the upstream engine refuses other platforms and filesystems.
 
+See the [usage guide](docs/README.md) for installation, Python API examples,
+daemon commands, and troubleshooting.
+
+To prepare a release, run `python3 scripts/bumpversion.py patch`; add `-y` to
+commit, tag, and push it. See [releasing to PyPI](docs/releasing.md) for setup
+and workflow details.
+
 ## In-process usage
 
 Install a built wheel with `pip install /path/to/layerfs-*.whl`. Applications

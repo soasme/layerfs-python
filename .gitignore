@@ -4,6 +4,8 @@ __pycache__/
 *.egg-info/
 python/layerfs/*.so
 .pytest_cache/
+.pytest-store/
+wheelhouse/
 .ruff_cache/
 dist/
 build/

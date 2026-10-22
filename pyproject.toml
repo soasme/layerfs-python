@@ -22,7 +22,8 @@ classifiers = [
 
 [project.urls]
 Upstream = "https://github.com/Ephemeral-AI-Lab/layerfs"
-Documentation = "https://layerfs.ai/docs/"
+Documentation = "https://github.com/soasme/layerfs-python/tree/main/docs"
+Source = "https://github.com/soasme/layerfs-python"
 
 [tool.maturin]
 bindings = "pyo3"
@@ -41,7 +42,21 @@ include = [
     { path = "upstream/layerfs/core/vendor/fuser-0.18.0/**/*", format = "sdist" },
     { path = "upstream/layerfs/LICENSE", format = "sdist" },
     { path = "tests/**/*.py", format = "sdist" },
+    { path = "docs/**/*.md", format = "sdist" },
+    { path = "scripts/**/*.py", format = "sdist" },
+    { path = "CHANGELOG.md", format = "sdist" },
 ]
+
+[tool.cibuildwheel]
+build = ["cp39-manylinux_*", "cp39-macosx_*"]
+test-requires = ["pytest"]
+test-command = "python -m pytest {project}/tests -q --basetemp={project}/.pytest-store"
+
+[tool.cibuildwheel.linux]
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+before-all = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.92.0"
+environment = { CARGO_HOME = "/tmp/cargo", RUSTUP_HOME = "/tmp/rustup", PATH = "/tmp/cargo/bin:$PATH" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
