@@ -90,6 +90,11 @@ jobs:
           package-dir: release-source
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          # /project is copied into overlayfs. /host is cibuildwheel's bind
+          # mount of the runner filesystem, where Store locking is supported.
+          CIBW_TEST_COMMAND_LINUX: >-
+            python -m pytest {project}/tests -q
+            --basetemp=/host${{ github.workspace }}/.pytest-store
       - uses: actions/upload-artifact@v4
         with:
           name: release-wheels-${{ matrix.os }}-${{ matrix.arch }}

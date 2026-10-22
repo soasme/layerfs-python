@@ -170,3 +170,38 @@ def test_distribution_check_ignores_uv_metadata(
         str(dist / "layerfs-1.2.4.whl"),
         str(dist / "layerfs-1.2.4.tar.gz"),
     }
+
+
+def test_shallow_cache_uses_pinned_commit_not_local_edits(
+    repository: Path, tmp_path: Path
+) -> None:
+    upstream = tmp_path / "upstream"
+    upstream.mkdir()
+    git(upstream, "init", "--initial-branch=main")
+    git(upstream, "config", "user.name", "Upstream")
+    git(upstream, "config", "user.email", "upstream@example.invalid")
+    (upstream / "source.txt").write_text("committed")
+    git(upstream, "add", ".")
+    git(upstream, "commit", "-m", "Upstream source")
+    git(
+        repository,
+        "-c",
+        "protocol.file.allow=always",
+        "submodule",
+        "add",
+        "--depth=1",
+        upstream.as_uri(),
+        "upstream/layerfs",
+    )
+    git(repository, "commit", "-am", "Pin upstream")
+    cached = repository / "upstream/layerfs"
+    assert git(cached, "rev-parse", "--is-shallow-repository") == "true"
+    (cached / "source.txt").write_text("uncommitted local edit")
+    clone = tmp_path / "release"
+    git(tmp_path, "clone", str(repository), str(clone))
+    bumpversion.checkout_submodules(repository, clone)
+    target = clone / "upstream/layerfs"
+    assert (target / "source.txt").read_text() == "committed"
+    assert git(target, "rev-parse", "HEAD") == git(upstream, "rev-parse", "HEAD")
+    assert git(target, "remote", "get-url", "origin") == upstream.as_uri()
+    assert (cached / "source.txt").read_text() == "uncommitted local edit"

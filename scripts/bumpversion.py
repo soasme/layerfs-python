@@ -168,6 +168,48 @@ def commit_release(root: Path, version: str, branch: str) -> None:
     )
 
 
+def checkout_submodules(root: Path, clone: Path) -> None:
+    cached = root / "upstream/layerfs"
+    if (cached / ".git").exists() and (clone / ".gitmodules").exists():
+        target = clone / "upstream/layerfs"
+        url = run(
+            "git",
+            "config",
+            "-f",
+            ".gitmodules",
+            "--get",
+            "submodule.upstream/layerfs.url",
+            cwd=clone,
+        )
+        # Local cloning supports shallow repositories, unlike --reference.
+        # Copy committed objects only, independently of the caller's worktree.
+        run_checked(
+            "git",
+            "clone",
+            "--quiet",
+            "--no-hardlinks",
+            "--no-checkout",
+            "--dissociate",
+            "--",
+            str(cached),
+            str(target),
+            cwd=clone,
+        )
+        run_checked("git", "remote", "set-url", "origin", url, cwd=target)
+    # Enforce the remote branch's gitlink, fetching missing objects if necessary.
+    run_checked(
+        "git",
+        "submodule",
+        "update",
+        "--init",
+        "--recursive",
+        "--force",
+        "--checkout",
+        "--depth=1",
+        cwd=clone,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("part", choices=("major", "minor", "patch"))
@@ -198,24 +240,7 @@ def main() -> None:
             str(clone),
             cwd=root,
         )
-        cached = root / "upstream/layerfs"
-        reference = (
-            ["--reference", str(cached), "--dissociate"]
-            if (cached / ".git").exists()
-            else []
-        )
-        # Borrow only Git objects, never working files; the checkout still uses
-        # the remote branch's pinned commit and becomes independent afterward.
-        run_checked(
-            "git",
-            "submodule",
-            "update",
-            "--init",
-            "--recursive",
-            "--depth=1",
-            *reference,
-            cwd=clone,
-        )
+        checkout_submodules(root, clone)
         run(
             "git",
             "rev-parse",
