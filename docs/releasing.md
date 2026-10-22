@@ -8,22 +8,6 @@ The Python package version comes from `rust/Cargo.toml`. The helper also updates
 the packaging crate's entry in `rust/Cargo.lock` and adds a changelog section.
 It does not change the upstream submodule or dependency versions.
 
-## One-time trusted publisher setup
-
-On PyPI, configure a GitHub trusted publisher with these exact values:
-
-| Field | Value |
-| --- | --- |
-| Project | `layerfs` |
-| Owner | `soasme` |
-| Repository | `layerfs-python` |
-| Workflow filename | `publish.yml` |
-| Environment | `pypi` |
-
-For a new project, add a [pending publisher](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/).
-For an existing project, add it under the project's Publishing settings.
-The workflow uses OIDC; no PyPI API token secret is required.
-
 ## Preview a release
 
 Install Git, uv, and the Rust/C toolchain needed to build this package. Configure
